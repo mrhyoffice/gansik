@@ -14,7 +14,7 @@
 
   let pendingRequestId = null;
   let responseTimer = null;
-  let historyRequest = null;
+  let historyAbortController = null;
 
   const isConfigured = () =>
     /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(
@@ -161,45 +161,43 @@
     });
   }
 
-  function loadHistory() {
+  async function loadHistory() {
     if (!isConfigured()) {
       showHistoryMessage("🍩", "신청 내역이 없습니다.");
       return;
     }
 
-    if (historyRequest) historyRequest.cleanup();
+    if (historyAbortController) historyAbortController.abort();
+    historyAbortController = new AbortController();
+    const currentController = historyAbortController;
     refreshHistoryButton.disabled = true;
     showHistoryMessage("⏳", "신청 내역을 불러오는 중입니다.");
 
-    const callbackName = `__snackHistory_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    const script = document.createElement("script");
-    let timer;
-
-    const cleanup = () => {
-      window.clearTimeout(timer);
-      delete window[callbackName];
-      script.remove();
-      refreshHistoryButton.disabled = false;
-      historyRequest = null;
-    };
-
-    historyRequest = { cleanup };
-    window[callbackName] = (payload) => {
-      cleanup();
+    const timeout = window.setTimeout(() => currentController.abort(), 12000);
+    try {
+      const response = await fetch(`${config.WEB_APP_URL}?_=${Date.now()}`, {
+        method: "GET",
+        cache: "no-store",
+        signal: currentController.signal,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
       if (!payload?.ok) {
         showHistoryMessage("⚠️", payload?.message || "신청 내역을 불러오지 못했습니다.");
         return;
       }
       renderHistory(payload.items);
-    };
-
-    script.onerror = () => {
-      cleanup();
+    } catch (error) {
+      if (error.name === "AbortError" && currentController !== historyAbortController) return;
       showHistoryMessage("⚠️", "신청 내역을 불러오지 못했습니다.");
-    };
-    timer = window.setTimeout(script.onerror, 12000);
-    script.src = `${config.WEB_APP_URL}?callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
-    document.body.append(script);
+      console.error("Failed to load snack history", error);
+    } finally {
+      window.clearTimeout(timeout);
+      if (currentController === historyAbortController) {
+        historyAbortController = null;
+        refreshHistoryButton.disabled = false;
+      }
+    }
   }
 
   refreshHistoryButton.addEventListener("click", loadHistory);
