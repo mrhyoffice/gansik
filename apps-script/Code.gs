@@ -5,6 +5,7 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("간식 신청 관리")
     .addItem("처음 설정하기", "setupProject")
+    .addItem("이메일 알림 테스트", "testAdminEmail")
     .addSeparator()
     .addItem("선택한 신청 완료 처리", "completeSelectedRows")
     .addToUi();
@@ -226,9 +227,22 @@ function doPost(e) {
       lock.releaseLock();
     }
 
-    sendAdminEmail_(adminEmail, application, now);
+    var emailSent = true;
+    try {
+      sendAdminEmail_(adminEmail, application, now);
+    } catch (emailError) {
+      emailSent = false;
+      console.error("Email notification failed", emailError);
+    }
     return responseHtml_(
-      { ok: true, requestId: requestId, message: "간식 신청이 접수되었습니다." },
+      {
+        ok: true,
+        requestId: requestId,
+        emailSent: emailSent,
+        message: emailSent
+          ? "간식 신청이 접수되었습니다."
+          : "신청은 저장됐지만 이메일 알림을 보내지 못했습니다.",
+      },
       allowedOrigin,
     );
   } catch (error) {
@@ -272,6 +286,31 @@ function sendAdminEmail_(adminEmail, application, requestedAt) {
     "</div></div>";
 
   MailApp.sendEmail({ to: adminEmail, subject: subject, body: plainBody, htmlBody: htmlBody, name: "미래해양 간식 신청" });
+}
+
+function testAdminEmail() {
+  var ui = SpreadsheetApp.getUi();
+  var adminEmail = PropertiesService.getScriptProperties().getProperty("ADMIN_EMAIL");
+  if (!adminEmail) {
+    ui.alert("관리자 이메일이 없습니다. '처음 설정하기'를 먼저 실행해 주세요.");
+    return;
+  }
+
+  try {
+    MailApp.sendEmail({
+      to: adminEmail,
+      subject: "[미래해양 간식 신청] 이메일 알림 테스트",
+      body: "간식 신청 이메일 알림이 정상적으로 연결되었습니다.",
+      name: "미래해양 간식 신청",
+    });
+    ui.alert(
+      "테스트 메일 전송 완료",
+      adminEmail + " 주소로 전송했습니다. 받은편지함과 스팸함을 확인해 주세요.",
+      ui.ButtonSet.OK,
+    );
+  } catch (error) {
+    ui.alert("이메일 전송 실패", String(error && error.message ? error.message : error), ui.ButtonSet.OK);
+  }
 }
 
 function completeSelectedRows() {

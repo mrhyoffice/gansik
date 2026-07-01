@@ -99,7 +99,9 @@
     }
 
     const snackName = document.querySelector("#snackName").value.trim();
-    successSummary.textContent = `‘${snackName}’ 신청을 관리자에게 전달했습니다.`;
+    successSummary.textContent = payload.emailSent === false
+      ? `‘${snackName}’ 신청은 저장됐지만 이메일 알림을 보내지 못했습니다.`
+      : `‘${snackName}’ 신청을 관리자에게 전달했습니다.`;
     form.reset();
     noteCount.textContent = "0";
     pendingRequestId = null;
