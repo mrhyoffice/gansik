@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#a8d5be" />
+    <meta name="description" content="미래해양 사내 간식 신청" />
+    <title>미래해양 간식 신청</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="snack-hero" aria-label="미래해양 스낵 모드">
+        <div class="hero-top">
+          <a class="hero-brand" href="./" aria-label="미래해양 간식 신청 홈">
+            <span class="hero-brand-mark" aria-hidden="true">M</span>
+            <span>미래해양</span>
+          </a>
+          <span class="hero-private">해양부 전용</span>
+        </div>
+
+        <div class="hero-title" aria-hidden="true">
+          <span>SNACK</span>
+          <span>MODE</span>
+        </div>
+
+        <div class="mode-control" aria-hidden="true">
+          <div class="mode-track">
+            <div class="snack-pack">
+              <span>SNACK</span>
+              <b>🍪</b>
+              <small>MIRAE</small>
+            </div>
+          </div>
+          <div class="mode-labels"><span>off</span><strong>ON</strong></div>
+        </div>
+      </section>
+
+      <section class="card request-card" aria-labelledby="request-title">
+        <div class="section-heading">
+          <div>
+            <h1 id="request-title">탕비실 간식 신청</h1>
+          </div>
+        </div>
+
+        <form id="snack-form" method="post" target="response-frame" novalidate>
+          <input type="hidden" name="requestId" id="request-id" />
+          <input type="hidden" name="origin" id="request-origin" />
+          <input class="honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+          <div class="field-group">
+            <label for="snackName">원하는 간식 <span>*</span></label>
+            <input
+              id="snackName"
+              name="snackName"
+              type="text"
+              placeholder="예: 포카칩 어니언맛"
+              maxlength="80"
+              autofocus
+              required
+            />
+            <span class="field-error">원하는 간식을 입력해 주세요.</span>
+          </div>
+
+          <div class="field-group note-group">
+            <label for="note">메모 <em>선택</em></label>
+            <textarea
+              id="note"
+              name="note"
+              rows="3"
+              maxlength="300"
+              placeholder="제조사, 수량, URL 등 참고사항"
+            ></textarea>
+            <span class="character-count"><span id="note-count">0</span>/300</span>
+          </div>
+
+          <div class="field-group">
+            <label for="managerName">관리자명 <span>*</span><em>사내 구성원 확인용</em></label>
+            <input
+              id="managerName"
+              name="managerName"
+              type="text"
+              placeholder="관리자 이름 입력"
+              maxlength="30"
+              autocomplete="off"
+              required
+            />
+            <span class="field-error">관리자명을 입력해 주세요.</span>
+          </div>
+
+          <button type="submit" class="submit-button" data-testid="submit-request">
+            <span class="button-label">신청하기</span>
+            <span class="button-loader" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <iframe id="response-frame" name="response-frame" title="신청 처리 결과" hidden></iframe>
+        <div id="form-status" class="status-message" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="card history-card" aria-labelledby="history-title">
+        <div class="history-header">
+          <div>
+            <h2 id="history-title">최근 신청 내역</h2>
+          </div>
+          <button type="button" id="refresh-history" class="refresh-button" aria-label="신청 내역 새로고침">새로고침</button>
+        </div>
+
+        <div id="history-list" class="history-list" aria-live="polite">
+          <div class="empty-state">
+            <span aria-hidden="true">🍩</span>
+            <p>신청 내역이 없습니다.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="success-dialog" class="success-dialog">
+      <div class="success-icon" aria-hidden="true">✓</div>
+      <h2>신청이 완료됐어요.</h2>
+      <p id="success-summary">관리자에게 신청 내용을 전달했습니다.</p>
+      <button type="button" id="close-dialog">확인</button>
+    </dialog>
+
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
